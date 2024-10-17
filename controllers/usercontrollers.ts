@@ -1,7 +1,8 @@
 import User from "../models/users";
 import expressAsyncHandler from "express-async-handler";
-import { Request, Response } from "express";
-import { hashPassword } from "../utils/password";
+import { NextFunction, Request, Response } from "express";
+import { comparePassword, hashPassword } from "../utils/password";
+import { generateToken } from "../middlewares/jwtTokens";
 
 export const registerUser = expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { name, email, password, phoneNumber } = req.body;
@@ -54,3 +55,82 @@ export const registerUser = expressAsyncHandler(async (req: Request, res: Respon
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+
+
+export const LoginUser = expressAsyncHandler(async(req:Request,res:Response)=>{
+    const {email, password} = req.body
+    if(!email || !password){
+        res.json({
+            status: 400,
+            message:"Provide the Required fields"
+        })
+    }
+    const user = await User.findOne({email})
+    if(!user){
+        res.json({
+            status: 400,
+            message:"User not found"})
+    }
+    const validPassword = await comparePassword(password, user?.password as string)
+    if(!validPassword){
+        res.json({
+            status: 400,
+            message:"Invalid Password"
+        })
+    }
+    const userId = user?._id.toString() as string
+    try {
+        const token = generateToken(email, userId );
+        res.cookie('access_token',token,{
+            httpOnly: true,
+            sameSite:"none",
+            secure: true,
+            expires: new Date(Date.now() + 360000)
+        })
+    } catch (error) {
+        console.error(error);
+    }
+    res.json({
+        status: 200,
+        message:`You are logged in successfully ${user?.name}`
+    })
+})
+
+
+export const updateUser = expressAsyncHandler(async(req:Request,res:Response)=>{
+    const {name,email,password} = req.body
+    const user = await User.findOne({ email: req?.user?.email })
+    if(!user){
+        res.json({
+            status: 400,
+            message:"User not found"
+        })
+        return;
+    }
+    if (user) {
+        if (name) {
+            user.name = name;
+        }
+        if (email) {
+            user.email = email;
+        }
+        if (password) {
+            user.password = password;
+        }
+    }
+      try{
+
+       await user.save();
+        res.json({
+            status: 200,
+            message:"User updated successfully"
+        })
+    } catch (error) {
+        res.json({
+            status: 500,
+            message:"Internal server error"
+        })
+    }
+})
+    
