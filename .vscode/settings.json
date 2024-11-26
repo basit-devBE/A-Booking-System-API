@@ -1,6 +1,12 @@
 {
     "cSpell.words": [
+        "bookingcontrollers",
+        "bookingservice",
         "cookieparser",
+        "limitvalue",
+        "openbookings",
+        "skipvalue",
+        "totalopenbookings",
         "usercontrollers",
         "validemail"
     ]

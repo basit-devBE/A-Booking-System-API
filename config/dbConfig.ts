@@ -14,8 +14,7 @@ const dbConfig = async () =>{
         });
         console.log("Database connected");
     } catch (error) {
-        console.error("Database connection failed");
-    }
+        console.error(error);    }
 }
 
 export default dbConfig;

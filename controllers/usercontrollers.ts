@@ -72,6 +72,7 @@ export const LoginUser = expressAsyncHandler(async(req:Request,res:Response)=>{
             status: 400,
             message:"User not found"})
     }
+
     const validPassword = await comparePassword(password, user?.password as string)
     if(!validPassword){
         res.json({
